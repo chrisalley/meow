@@ -1,6 +1,26 @@
 <div id="table-container">
 
   <table>
+    <thead>
+      <tr>
+        <th>
+          <.live_component
+            module={MeowWeb.MeerkatLive.SortingComponent}
+            id={"sorting-id"}
+            key={:id}
+            sorting={@sorting}
+          />
+        </th>
+        <th>
+          <.live_component
+            module={MeowWeb.MeerkatLive.SortingComponent}
+            id={"sorting-name"}
+            key={:name}
+            sorting={@sorting}
+          />
+        </th>
+      </tr>
+    </thead>
     <tbody>
       <%= if assigns[:error_message] do %>
         <tr>
