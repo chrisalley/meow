@@ -3,6 +3,7 @@ defmodule MeowWeb.MeerkatLive do
   alias Meow.Meerkats
   alias MeowWeb.Forms.SortingForm
   alias MeowWeb.Forms.FilterForm
+  alias MeowWeb.Forms.PaginationForm
 
   @impl true
   def mount(_params, _session, socket), do: {:ok, socket}
@@ -26,15 +27,18 @@ defmodule MeowWeb.MeerkatLive do
 
   defp parse_params(socket, params) do
     with {:ok, sorting_opts} <- SortingForm.parse(params),
-         {:ok, filter_opts} <- FilterForm.parse(params) do
+         {:ok, filter_opts} <- FilterForm.parse(params),
+         {:ok, pagination_opts} <- PaginationForm.parse(params) do
       socket
       |> assign_filter(filter_opts)
       |> assign_sorting(sorting_opts)
+      |> assign_pagination(pagination_opts)
     else
       _error ->
         socket
         |> assign_sorting()
         |> assign_filter()
+        |> assign_pagination()
     end
   end
 
@@ -47,20 +51,50 @@ defmodule MeowWeb.MeerkatLive do
     assign(socket, :filter, FilterForm.default_values(overrides))
   end
 
+  defp assign_pagination(socket, overrides \\ %{}) do
+    assign(socket, :pagination, PaginationForm.default_values(overrides))
+  end
+
   defp assign_meerkats(socket) do
     params = merge_and_sanitize_params(socket)
 
-    assign(socket, :meerkats, Meerkats.list_meerkats(params))
+    %{meerkats: meerkets, total_count: total_count} =
+      Meerkats.list_meerkats_with_total_count(params)
+
+    socket
+    |> assign(:meerkats, meerkets)
+    |> assign_total_count(total_count)
   end
 
   defp merge_and_sanitize_params(socket, overrides \\ %{}) do
-    %{sorting: sorting, filter: filter} = socket.assigns
+    %{sorting: sorting, filter: filter, pagination: pagination} = socket.assigns
+
+    overrides = maybe_reset_pagination(overrides)
 
     %{}
     |> Map.merge(sorting)
     |> Map.merge(filter)
+    |> Map.merge(pagination)
     |> Map.merge(overrides)
+    |> Map.drop([:total_count])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
+  end
+
+  defp assign_total_count(socket, total_count) do
+    update(socket, :pagination, fn pagination ->
+      %{
+        pagination
+        | total_count: total_count
+      }
+    end)
+  end
+
+  defp maybe_reset_pagination(overrides) do
+    if FilterForm.contains_filter_values?(overrides) do
+      Map.put(overrides, :page, 1)
+    else
+      overrides
+    end
   end
 end
