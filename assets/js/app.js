@@ -27,11 +27,11 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
 // The below line isn't mentioned in the book but needed in Chapter 5
-// import InfinityScroll from "./infinity-scroll";
+import InfinityScroll from "./infinity-scroll";
 
 let Hooks = {};
 // The below line isn't mentioned in the book but needed in Chapter 5
-// Hooks.InfinityScroll = InfinityScroll;
+Hooks.InfinityScroll = InfinityScroll;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

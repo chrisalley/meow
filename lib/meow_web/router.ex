@@ -17,6 +17,7 @@ defmodule MeowWeb.Router do
   scope "/", MeowWeb do
     pipe_through(:browser)
 
+    live("/infinity", InfinityLive)
     live("/", MeerkatLive)
   end
 end
